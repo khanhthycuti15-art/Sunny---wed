@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Doki Style Chat</title>
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #0f0f1a;
+    color: white;
+}
+#app {
+    max-width: 700px;
+    margin: auto;
+    padding: 20px;
+}
+#chat {
+    height: 70vh;
+    overflow-y: auto;
+    border: 1px solid #333;
+    padding: 10px;
+    border-radius: 10px;
+    background: #151525;
+}
+.msg {
+    margin: 10px 0;
+}
+.user {
+    text-align: right;
+    color: #7dd3fc;
+}
+.bot {
+    text-align: left;
+    color: #fca5a5;
+}
+input {
+    width: 80%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+}
+button {
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #6366f1;
+    color: white;
+}
+#char {
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #fbbf24;
+}
+</style>
+</head>
+
+<body>
+<div id="app">
+    <div id="char">👤 Nhân vật: Yuna (ngọt ngào, hơi ghen)</div>
+    <div id="chat"></div>
+
+    <input id="input" placeholder="Nhập tin nhắn...">
+    <button onclick="send()">Gửi</button>
+</div>
+
+<script>
+let character = {
+    name: "Yuna",
+    mood: "ngọt ngào"
+};
+
+// load chat
+let chatBox = document.getElementById("chat");
+let history = JSON.parse(localStorage.getItem("chat") || "[]");
+
+function render() {
+    chatBox.innerHTML = "";
+    history.forEach(m => {
+        let div = document.createElement("div");
+        div.className = "msg " + m.role;
+        div.innerText = (m.role === "user" ? "Bạn: " : character.name + ": ") + m.text;
+        chatBox.appendChild(div);
+    });
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function botReply(text) {
+    let mood = character.mood;
+
+    let reply = "";
+
+    if (text.includes("ghen")) {
+        reply = "Hả? ai cho phép bạn nói vậy với tôi... 😳";
+        character.mood = "ghen nhẹ";
+    }
+    else if (text.includes("yêu")) {
+        reply = "…đừng nói vậy nữa, tôi ngại đó 💕";
+        character.mood = "xấu hổ";
+    }
+    else if (text.includes("buồn")) {
+        reply = "Tôi ở đây với bạn mà…";
+        character.mood = "an ủi";
+    }
+    else {
+        reply = "Ừm… tôi đang nghe đây.";
+    }
+
+    return reply;
+}
+
+function send() {
+    let input = document.getElementById("input");
+    let text = input.value.trim();
+    if (!text) return;
+
+    history.push({role: "user", text});
+    let bot = botReply(text);
+    history.push({role: "bot", text: bot});
+
+    localStorage.setItem("chat", JSON.stringify(history));
+
+    input.value = "";
+    render();
+}
+
+render();
+</script>
+</body>
+</html>
