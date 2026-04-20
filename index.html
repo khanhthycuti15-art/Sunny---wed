@@ -48,7 +48,12 @@ button {padding:10px;margin-top:5px;border:none;border-radius:10px;background:ho
     <div class="avatar"></div>
     <h3 id="userName">Chưa đăng nhập</h3>
   </div><button onclick="loginGoogle()">Đăng nhập Google</button>
-<button onclick="loginEmail()">Đăng nhập Email</button>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Mật khẩu">
+
+<button onclick="register()">Đăng ký</button>
+<button onclick="login()">Đăng nhập</button>
+<button onclick="loginGoogle()">Google</button>
 <button onclick="logout()">Đăng xuất</button>
 
 </div><div class="fab" onclick="showTab('create')">+</div><div class="bottom-nav">
