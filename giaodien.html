@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Chat App</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f9f9fb;
+}
+
+/* HEADER */
+header {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  padding: 10px;
+  z-index: 10;
+}
+
+.search-box {
+  background: #f1f1f1;
+  padding: 10px;
+  border-radius: 20px;
+}
+
+/* CONTENT */
+.content {
+  padding: 10px;
+  padding-bottom: 80px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.card-body {
+  padding: 8px;
+}
+
+.name {
+  font-weight: bold;
+}
+
+.desc {
+  font-size: 12px;
+  color: #666;
+}
+
+/* CHAT LIST */
+.chat-item {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 10px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.chat-item img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+/* PROFILE */
+.profile {
+  text-align: center;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: pink;
+  margin: auto;
+}
+
+/* CREATE */
+input, textarea, select {
+  width: 100%;
+  margin-top: 5px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+/* NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  background: white;
+  border-top: 1px solid #eee;
+  height: 60px;
+}
+
+.nav-btn {
+  flex: 1;
+  text-align: center;
+  line-height: 60px;
+  font-size: 20px;
+  color: #888;
+}
+
+.active {
+  color: hotpink;
+}
+
+/* FLOAT BUTTON */
+.fab {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: hotpink;
+  color: white;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 55px;
+  font-size: 28px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* HIDDEN */
+.hidden {
+  display: none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="search-box">🔍 Tìm kiếm nhân vật...</div>
+</header>
+
+<!-- HOME -->
+<div id="home" class="content">
+  <h3>🔥 Đề xuất</h3>
+
+  <div class="grid">
+    <div class="card">
+      <img src="https://i.imgur.com/1.jpg">
+      <div class="card-body">
+        <div class="name">Giang Kỳ Mặc</div>
+        <div class="desc">Lạnh lùng, nguy hiểm</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <img src="https://i.imgur.com/2.jpg">
+      <div class="card-body">
+        <div class="name">Aleksandr</div>
+        <div class="desc">CEO độc đoán</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="chat" class="content hidden">
+  <h3>💖 Yêu thích</h3>
+
+  <div class="chat-item">
+    <img src="https://i.imgur.com/1.jpg">
+    <div>Giang Kỳ Mặc</div>
+  </div>
+
+  <h3>💬 Trò chuyện</h3>
+
+  <div class="chat-item">
+    <img src="https://i.imgur.com/2.jpg">
+    <div>Aleksandr</div>
+  </div>
+</div>
+
+<!-- CREATE -->
+<div id="create" class="content hidden">
+  <h3>➕ Tạo nhân vật</h3>
+
+  <input placeholder="Tên (0-40)" maxlength="40">
+  <input placeholder="Giới tính">
+  <input type="file">
+  <input placeholder="Tag">
+  <input placeholder="Slogan (0-100)" maxlength="100">
+  <textarea placeholder="Ghi chú"></textarea>
+
+  <select>
+    <option>Công khai</option>
+    <option>Riêng tư</option>
+  </select>
+
+  <textarea placeholder="Thông tin công khai (3000)"></textarea>
+  <textarea placeholder="Tính cách (60000)"></textarea>
+  <textarea placeholder="Tiểu sử (5000)"></textarea>
+  <textarea placeholder="Tin nhắn đầu tiên (3000)"></textarea>
+
+  <button style="margin-top:10px;background:hotpink;color:white;">Tạo</button>
+</div>
+
+<!-- PROFILE -->
+<div id="profile" class="content hidden">
+  <div class="profile">
+    <div class="avatar"></div>
+    <h3>{{user}}</h3>
+  </div>
+
+  <div class="card">
+    <h4>🎯 Nhiệm vụ</h4>
+    <button>Điểm danh</button>
+    <button>Mời bạn (200⭐)</button>
+  </div>
+
+  <div class="card">
+    <h4>⚙️ Cài đặt</h4>
+    <button>Chỉnh sửa nhân vật</button>
+  </div>
+</div>
+
+<!-- FLOAT BUTTON -->
+<div class="fab" onclick="showTab('create')">+</div>
+
+<!-- NAV -->
+<div class="bottom-nav">
+  <div class="nav-btn active" onclick="showTab('home')">🏠</div>
+  <div class="nav-btn" onclick="showTab('chat')">💬</div>
+  <div class="nav-btn" onclick="showTab('profile')">👤</div>
+</div>
+
+<script>
+function showTab(tab) {
+  document.querySelectorAll('.content').forEach(e => e.classList.add('hidden'));
+  document.getElementById(tab).classList.remove('hidden');
+
+  document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
+}
+</script>
+
+</body>
+    </html>
