@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Doki Chat V2</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #0b0b14;
+    color: white;
+}
+#app { max-width: 800px; margin: auto; padding: 20px; }
+
+#top {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+select, input, button {
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+}
+
+#chat {
+    height: 65vh;
+    overflow-y: auto;
+    border: 1px solid #333;
+    padding: 10px;
+    border-radius: 10px;
+    background: #151525;
+}
+
+.msg { margin: 8px 0; }
+.user { text-align: right; color: #7dd3fc; }
+.bot { text-align: left; color: #fca5a5; }
+
+.small { font-size: 12px; color: gray; }
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+<div id="top">
+    <select id="char" onchange="switchChar()">
+        <option value="Yuna">Yuna</option>
+        <option value="Rin">Rin</option>
+        <option value="Mika">Mika</option>
+    </select>
+
+    <div class="small" id="status"></div>
+</div>
+
+<div id="chat"></div>
+
+<input id="input" placeholder="Nhập tin nhắn...">
+<button onclick="send()">Gửi</button>
+
+</div>
+
+<script>
+
+/* ======================
+   DOKI CORE SYSTEM
+====================== */
+
+let data = {
+    Yuna: createChar("ngọt ngào"),
+    Rin: createChar("lạnh lùng"),
+    Mika: createChar("ghen nhẹ")
+};
+
+let current = "Yuna";
+
+/* INIT CHAR */
+function createChar(baseMood) {
+    return {
+        mood: baseMood,
+        relationship: 50, // 0-100
+        memory: [], // event memory
+    };
+}
+
+/* LOAD */
+function load() {
+    let saved = JSON.parse(localStorage.getItem("doki_v2") || "{}");
+    data = { ...data, ...saved };
+}
+
+/* SAVE */
+function save() {
+    localStorage.setItem("doki_v2", JSON.stringify(data));
+}
+
+/* ======================
+   RENDER CHAT
+====================== */
+
+let chat = document.getElementById("chat");
+
+function render() {
+    chat.innerHTML = "";
+
+    let mem = data[current].memory;
+
+    mem.forEach(m => {
+        let div = document.createElement("div");
+        div.className = "msg " + m.role;
+        div.innerText = (m.role === "user" ? "Bạn: " : current + ": ") + m.text;
+        chat.appendChild(div);
+    });
+
+    chat.scrollTop = chat.scrollHeight;
+
+    updateStatus();
+}
+
+/* ======================
+   STATUS SYSTEM
+====================== */
+
+function updateStatus() {
+    let c = data[current];
+    let mood = c.mood;
+    let rel = c.relationship;
+
+    document.getElementById("status").innerText =
+        `Mood: ${mood} | Quan hệ: ${rel}`;
+}
+
+/* ======================
+   MEMORY ENGINE (DOKI STYLE)
+====================== */
+
+function analyze(text, char) {
+    let rel = char.relationship;
+
+    // emotion triggers
+    if (text.includes("yêu")) {
+        rel += 10;
+        char.mood = "xấu hổ";
+        addEvent("Bạn đã nói lời yêu");
+    }
+
+    if (text.includes("ghen")) {
+        rel -= 5;
+        char.mood = "ghen";
+        addEvent("Có cảm giác ghen");
+    }
+
+    if (text.includes("bỏ")) {
+        rel -= 15;
+        char.mood = "buồn";
+        addEvent("Nghe thấy lời tiêu cực");
+    }
+
+    if (text.includes("xin lỗi")) {
+        rel += 8;
+        char.mood = "dịu lại";
+    }
+
+    // clamp
+    char.relationship = Math.max(0, Math.min(100, rel));
+}
+
+/* event memory */
+function addEvent(e) {
+    data[current].memory.push({
+        role: "system",
+        text: "📌 " + e
+    });
+}
+
+/* ======================
+   BOT AI LOGIC
+====================== */
+
+function bot(text) {
+    let c = data[current];
+
+    analyze(text, c);
+
+    let reply = "";
+
+    // memory-based reaction
+    let last = c.memory.slice(-6).map(x => x.text).join(" ");
+
+    if (c.relationship > 80) {
+        reply = "Tôi thích bạn... nhiều hơn tôi nghĩ 💕";
+    }
+    else if (c.relationship < 30) {
+        reply = "Đừng nói chuyện với tôi nữa...";
+    }
+    else if (last.includes("yêu")) {
+        reply = "Tôi vẫn đang nhớ câu đó...";
+    }
+    else if (c.mood === "ghen") {
+        reply = "Bạn đang nói chuyện với ai vậy?";
+    }
+    else if (c.mood === "lạnh lùng") {
+        reply = "Ừ.";
+    }
+    else {
+        reply = "Tôi nghe đây...";
+    }
+
+    return reply;
+}
+
+/* ======================
+   SEND MESSAGE
+====================== */
+
+function send() {
+    let input = document.getElementById("input");
+    let text = input.value.trim();
+    if (!text) return;
+
+    let c = data[current];
+
+    c.memory.push({ role: "user", text });
+
+    let reply = bot(text);
+
+    c.memory.push({ role: "bot", text: reply });
+
+    save();
+
+    input.value = "";
+    render();
+}
+
+/* ======================
+   SWITCH CHARACTER
+====================== */
+
+function switchChar() {
+    current = document.getElementById("char").value;
+    render();
+}
+
+/* ======================
+   INIT
+====================== */
+
+load();
+render();
+
+</script>
+
+</body>
+</html>
