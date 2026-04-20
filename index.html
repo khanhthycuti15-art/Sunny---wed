@@ -1,212 +1,147 @@
-<!DOCTYPE html>
-<html lang="vi">
+<!DOCTYPE html><html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>AI Chat App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Chat App</title><style>
+body {margin:0;font-family:'Segoe UI',sans-serif;background:#f9f9fb;}
+header {position:sticky;top:0;background:#fff;padding:10px;z-index:10;}
+.search-box {background:#f1f1f1;padding:10px;border-radius:20px;}
+.content {padding:10px;padding-bottom:80px;}
+.grid {display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.card {background:white;border-radius:15px;overflow:hidden;box-shadow:0 3px 8px rgba(0,0,0,0.08);}
+.card img {width:100%;height:140px;object-fit:cover;}
+.card-body {padding:8px;}
+.name {font-weight:bold;}
+.desc {font-size:12px;color:#666;}
+.chat-item {display:flex;align-items:center;background:white;padding:10px;border-radius:12px;margin-bottom:8px;}
+.chat-item img {width:45px;height:45px;border-radius:50%;margin-right:10px;}
+.profile {text-align:center;}
+.avatar {width:80px;height:80px;border-radius:50%;background:pink;margin:auto;}
+input,textarea,select {width:100%;margin-top:5px;padding:10px;border-radius:10px;border:1px solid #ddd;}
+.bottom-nav {position:fixed;bottom:0;width:100%;display:flex;background:white;border-top:1px solid #eee;height:60px;}
+.nav-btn {flex:1;text-align:center;line-height:60px;font-size:20px;color:#888;}
+.active {color:hotpink;}
+.fab {position:fixed;bottom:25px;left:50%;transform:translateX(-50%);
+background:hotpink;color:white;width:55px;height:55px;border-radius:50%;
+text-align:center;line-height:55px;font-size:28px;}
+.hidden {display:none;}
+button {padding:10px;margin-top:5px;border:none;border-radius:10px;background:hotpink;color:white;width:100%;}
+</style></head><body><header>
+  <div class="search-box">🔍 Tìm kiếm nhân vật...</div>
+</header><!-- HOME --><div id="home" class="content">
+  <h3>🔥 Đề xuất</h3>
+  <div class="grid" id="charList"></div>
+</div><!-- CHAT --><div id="chat" class="content hidden">
+  <h3>💬 Chat (demo)</h3>
+</div><!-- CREATE --><div id="create" class="content hidden">
+  <h3>➕ Tạo nhân vật</h3>  <input id="name" placeholder="Tên">
+  <input id="gender" placeholder="Giới tính">
+  <input type="file" id="avatar">
+  <input id="tag" placeholder="Tag">
+  <input id="slogan" placeholder="Slogan">  <textarea id="note" placeholder="Ghi chú"></textarea>  <select id="privacy">
+    <option>Công khai</option>
+    <option>Riêng tư</option>
+  </select>  <textarea id="publicInfo" placeholder="Thông tin công khai"></textarea>  <textarea id="personality" placeholder="Tính cách"></textarea>  <textarea id="bio" placeholder="Tiểu sử"></textarea>  <textarea id="firstMsg" placeholder="Tin nhắn đầu"></textarea><button onclick="createChar()">Tạo nhân vật</button>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #fff;
-    }
+</div><!-- PROFILE --><div id="profile" class="content hidden">
+  <div class="profile">
+    <div class="avatar"></div>
+    <h3 id="userName">Chưa đăng nhập</h3>
+  </div><button onclick="loginGoogle()">Đăng nhập Google</button>
+<button onclick="loginEmail()">Đăng nhập Email</button>
+<button onclick="logout()">Đăng xuất</button>
 
-    header {
-      padding: 10px;
-      background: #ffb6c1;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-    }
-
-    .content {
-      padding: 10px;
-      padding-bottom: 70px;
-    }
-
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      display: flex;
-      background: #fff;
-      border-top: 1px solid #ddd;
-    }
-
-    .nav-btn {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      cursor: pointer;
-    }
-
-    .active {
-      color: pink;
-      font-weight: bold;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    button {
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      background: pink;
-      color: white;
-      margin-top: 5px;
-      width: 100%;
-    }
-
-    textarea {
-      width: 100%;
-      border-radius: 10px;
-      padding: 10px;
-      margin-top: 5px;
-    }
-  </style>
-</head>
-
-<body>
-
-<!-- HEADER -->
-<header>
-  <input type="text" placeholder="Tìm kiếm nhân vật..." />
-</header>
-
-<!-- HOME -->
-<div id="home" class="content">
-  <h3>Đề xuất</h3>
-  <div class="card">Nhân vật A</div>
-  <div class="card">Nhân vật B</div>
-</div>
-
-<!-- CHAT -->
-<div id="chat" class="content hidden">
-  <h3>Yêu thích</h3>
-  <div class="card">❤️ Nhân vật đã lưu</div>
-
-  <h3>Đang chat</h3>
-  <div class="card">Chat 1</div>
-</div>
-
-<!-- CREATE -->
-<div id="create" class="content hidden">
-  <h3>Tạo nhân vật</h3>
-
-  <div class="card">
-    <h4>1. Cài đặt cơ bản</h4>
-    <input placeholder="Tên (0-40)" maxlength="40">
-    <input placeholder="Giới tính">
-    <input type="file">
-    <input placeholder="Tag">
-    <input placeholder="Slogan (0-100)" maxlength="100">
-    <textarea placeholder="Ghi chú"></textarea>
-
-    <select>
-      <option>Công khai</option>
-      <option>Riêng tư</option>
-    </select>
-  </div>
-
-  <div class="card">
-    <h4>2. Thông tin công khai</h4>
-    <textarea maxlength="3000"></textarea>
-  </div>
-
-  <div class="card">
-    <h4>3. Tính cách</h4>
-    <textarea maxlength="60000"></textarea>
-  </div>
-
-  <div class="card">
-    <h4>4. Đối thoại mở đầu</h4>
-    <textarea placeholder="Tiểu sử (0-5000)" maxlength="5000"></textarea>
-    <textarea placeholder="Tin nhắn đầu tiên (0-3000)" maxlength="3000"></textarea>
-  </div>
-
-  <button>Tạo nhân vật</button>
-</div>
-
-<!-- PROFILE -->
-<div id="profile" class="content hidden">
-  <h3>Trang cá nhân</h3>
-
-  <div class="card">
-    <h4>Nhiệm vụ</h4>
-    <button>Điểm danh</button>
-    <button>Mời bạn (200⭐)</button>
-  </div>
-
-  <div class="card">
-    <h4>Cài đặt</h4>
-    <button>Chỉnh sửa {{user}}</button>
-  </div>
-
-  <button onclick="loginGoogle()">Đăng nhập Google</button>
-  <button onclick="loginEmail()">Đăng nhập Email</button>
-</div>
-
-<!-- NAV -->
-<div class="bottom-nav">
+</div><div class="fab" onclick="showTab('create')">+</div><div class="bottom-nav">
   <div class="nav-btn active" onclick="showTab('home')">🏠</div>
   <div class="nav-btn" onclick="showTab('chat')">💬</div>
-  <div class="nav-btn" onclick="showTab('create')">➕</div>
   <div class="nav-btn" onclick="showTab('profile')">👤</div>
-</div>
-
-<!-- SCRIPT -->
-<script>
-function showTab(tab) {
-  document.querySelectorAll('.content').forEach(e => e.classList.add('hidden'));
-  document.getElementById(tab).classList.remove('hidden');
-
-  document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
-  event.target.classList.add('active');
-}
-</script>
-
-</body>: <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
-
-<script>
+</div><!-- FIREBASE --><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script><script>
 const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
+  apiKey: "AIzaSyBXKEGARfK1Z4ZEvRSDHhtfH1eJns8pzKE",
+  authDomain: "chat-app-6fc2d.firebaseapp.com",
+  projectId: "chat-app-6fc2d",
+  storageBucket: "chat-app-6fc2d.appspot.com",
+  messagingSenderId: "200494903425",
+  appId: "1:200494903425:web:6a5efe077d70a6d6ee5d80"
 };
 
 firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 const auth = firebase.auth();
 
-// Google login
-function loginGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider);
+/* TAB */
+function showTab(tab){
+ document.querySelectorAll('.content').forEach(e=>e.classList.add('hidden'));
+ document.getElementById(tab).classList.remove('hidden');
 }
 
-// Email login
-function loginEmail() {
-  const email = prompt("Email:");
-  const pass = prompt("Password:");
-
-  auth.signInWithEmailAndPassword(email, pass)
-    .catch(() => {
-      auth.createUserWithEmailAndPassword(email, pass);
-    });
+/* LOGIN */
+function loginGoogle(){
+ const provider=new firebase.auth.GoogleAuthProvider();
+ auth.signInWithPopup(provider);
 }
-</script>
+
+function loginEmail(){
+ let e=prompt("Email"), p=prompt("Pass");
+ auth.signInWithEmailAndPassword(e,p)
+ .catch(()=>auth.createUserWithEmailAndPassword(e,p));
+}
+
+function logout(){
+ auth.signOut();
+}
+
+/* USER */
+auth.onAuthStateChanged(user=>{
+ document.getElementById("userName").innerText =
+  user ? user.email : "Chưa đăng nhập";
+});
+
+/* IMG */
+function toBase64(file){
+ return new Promise(res=>{
+  const r=new FileReader();
+  r.readAsDataURL(file);
+  r.onload=()=>res(r.result);
+ });
+}
+
+/* CREATE */
+async function createChar(){
+ let file=document.getElementById("avatar").files[0];
+ let img="";
+ if(file) img=await toBase64(file);
+
+ await db.collection("characters").add({
+  name:name.value,
+  slogan:slogan.value,
+  bio:bio.value,
+  img,
+  createdAt:new Date()
+ });
+
+ alert("Tạo xong!");
+ loadChars();
+}
+
+/* LOAD */
+async function loadChars(){
+ let snap=await db.collection("characters").orderBy("createdAt","desc").get();
+ let html="";
+ snap.forEach(doc=>{
+  let c=doc.data();
+  html+=`
+  <div class="card">
+    <img src="${c.img||'https://via.placeholder.com/300'}">
+    <div class="card-body">
+      <div class="name">${c.name}</div>
+      <div class="desc">${c.slogan||""}</div>
+    </div>
+  </div>`;
+ });
+ document.getElementById("charList").innerHTML=html;
+}
+
+loadChars();
+</script></body>
 </html>
