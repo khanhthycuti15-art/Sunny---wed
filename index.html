@@ -2,294 +2,244 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>DokiChat Lite</title>
+<title>Lumi Chat</title>
 
 <style>
 body {
-  margin: 0;
-  font-family: Arial;
-  background: #0f0f0f;
-  color: white;
+    margin: 0;
+    font-family: Arial;
+    background: #0b0c18;
+    color: white;
 }
 
 #app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+}
+
+#top {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+select, input, button {
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
 }
 
 #chat {
-  flex: 1;
-  overflow-y: auto;
-  padding: 15px;
+    height: 65vh;
+    overflow-y: auto;
+    background: #14162a;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid #2a2d55;
 }
 
-.message {
-  margin: 8px 0;
-  max-width: 70%;
-  padding: 10px;
-  border-radius: 10px;
-}
+.msg { margin: 8px 0; }
+.user { text-align: right; color: #7dd3fc; }
+.bot { text-align: left; color: #fda4af; }
 
-.user {
-  background: #00ffcc;
-  color: black;
-  margin-left: auto;
-}
-
-.bot {
-  background: #222;
-}
-
-#inputBox {
-  display: flex;
-  padding: 10px;
-  background: #111;
-}
-
-input {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  outline: none;
-  border-radius: 5px;
-}
-
-button {
-  margin-left: 10px;
-  padding: 10px 15px;
-  background: #00ffcc;
-  border: none;
-  cursor: pointer;
+#status {
+    font-size: 13px;
+    color: #a1a1aa;
 }
 </style>
 </head>
 
-<body>: <div style="padding:10px; background:#111; text-align:center;">
-  <button onclick="setCharacter('linh')">Linh 🌸</button>
-  <button onclick="setCharacter('kuro')">Kuro 🖤</button>
-  <button onclick="setCharacter('mimi')">Mimi 🧸</button>
-</div>
+<body>
+
 <div id="app">
-  <div id="chat"></div>
 
-  <div id="inputBox">
-    <input id="input" placeholder="Nhập tin nhắn..." />
-    <button onclick="send()">Gửi</button>
-  </div>
+<div id="top">
+    <select id="char" onchange="switchChar()">
+        <option value="Luna">Luna</option>
+        <option value="Noir">Noir</option>
+        <option value="Mira">Mira</option>
+    </select>
+
+    <div id="status"></div>
 </div>
 
-<script>: let memories = {
-  linh: [],
-  kuro: [],
-  mimi: []
-}; let character = "linh"; let mood = "normal"; async function realAI(text) {
-  const apiKey = "DÁN_API_KEY_CỦA_BẠN_VÀO_ĐÂY";
+<div id="chat"></div>
 
-  // lấy lịch sử gần nhất để giữ ngữ cảnh
-  const recent = history.slice(-10).map(m => ({
-    role: m.type === "user" ? "user" : "assistant",
-    content: m.text
-  }));
+<input id="input" placeholder="Nhập tin nhắn...">
+<button onclick="send()">Gửi</button>
 
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + apiKey
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "Bạn là một AI nói chuyện tự nhiên, văn phong mượt, không lặp từ, trả lời dài vừa phải, giữ ngữ cảnh tốt." },
-        ...recent,
-        { role: "user", content: text }
-      ]
-    })
-  });
+</div>
 
-  const characters = {
-  linh: {
-    name: "Linh",
-    style: "dịu dàng, hay quan tâm, nói chuyện nhẹ nhàng"
-  },
-  kuro: {
-    name: "Kuro",
-    style: "lạnh lùng, ít nói, hơi toxic nhẹ"
-  },
-  mimi: {
-    name: "Mimi",
-    style: "dễ thương, làm nũng, hay nhõng nhẽo"
-  }
-};
-  const data = await res.json();
-  return data.choices[0].message.content;
-}
-const chat = document.getElementById("chat");
-const input = document.getElementById("input");
+<script>
 
-// load lịch sử
-let history = JSON.parse(localStorage.getItem("chat")) || [];
-history.forEach(msg => addMessage(msg.text, msg.type));
+/* ======================
+   CHARACTER SYSTEM
+====================== */
 
-function addMessage(text, type) {
-  const div = document.createElement("div");
-  div.className = "message " + type;
-  div.innerText = text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-  function fakeAI(text) {
-
-  let char = characters[character];
-
-  let base = [
-    "Ừm... tôi hiểu rồi.",
-    "Bạn nói tiếp đi.",
-    "Tôi đang nghe đây.",
-    "Thế sao nữa?"
-  ]; function fakeAI(text) {
-
-  let mem = memories[character];
-
-  let context = mem.map(m =>
-    "User: " + m.user + " | Bot: " + m.bot
-  ).join("\n");
-
-  let replies = [
-    "Tôi nhớ bạn đã nói điều này rồi...",
-    "Hmm... để tôi nghĩ lại...",
-    "Tôi hiểu rồi.",
-    "Tiếp tục đi."
-  ];
-
-  let reply = replies[Math.floor(Math.random() * replies.length)];
-
-  let finalReply =
-    "🧠 [" + character + " memory]\n" +
-    reply;
-
-  // lưu memory sau khi trả lời
-  saveMemory(text, finalReply);
-
-  return finalReply;
-  }
-
-  let reply = base[Math.floor(Math.random() * base.length)];
-
-  return char.name + " (" + char.style + "): " + reply;
-  }
-function fakeAI(text) {
-  const replies = [
-    "Tôi đang nghe đây...",
-    "Nghe cũng thú vị đấy.",
-    "Bạn nói tiếp đi.",
-    "Hmm... tôi hiểu.",
-    "Thế rồi sao nữa?"
-    function fakeAI(text) {
-
-  let base = [
-    "Tôi đang nghe đây...",
-    "Hmm... tiếp đi.",
-    "Tôi hiểu rồi.",
-    "Rồi sao nữa?"
-  ];
-
-  let reply = base[Math.floor(Math.random() * base.length)];
-
-  if (mood === "ghen") {
-    return "😤 Ai cho bạn nói chuyện với người khác? " + reply;
-  }
-
-  if (mood === "say") {
-    return "🍷 Hic... hơi chóng mặt rồi... " + reply;
-  }
-
-  if (mood === "lamnung") {
-    return "🥺 Không để ý tới tôi hả... " + reply;
-  }
-
-  return reply;
-  }
-  ];
-  return replies[Math.floor(Math.random() * replies.length)];
-}
-
-async function send() {
-  const text = input.value.trim();
-  if (!text) return; function saveMemory(userText, botText) {
-  memories[character].push({
-    user: userText,
-    bot: botText
-  });function setMood(newMood) {
-  mood = newMood;
-  addMessage("💫 Mood đã đổi thành: " + mood, "bot");
-}
-const characters = {
-  linh: {
-    name: "Linh",
-    style: "dịu dàng, hay quan tâm, nói chuyện nhẹ nhàng"
-  },
-  kuro: {
-    name: "Kuro",
-    style: "lạnh lùng, ít nói, hơi toxic nhẹ"
-  },
-  mimi: {
-    name: "Mimi",
-    style: "dễ thương, làm nũng, hay nhõng nhẽo"
-  }
+let chars = {
+    Luna: createChar("dịu dàng"),
+    Noir: createChar("lạnh lùng"),
+    Mira: createChar("ghen nhẹ")
 };
 
-function setCharacter(name) {
-  character = name;
-  addMessage("✨ Đã chọn nhân vật: " + characters[name].name, "bot");
+let current = "Luna";
+
+function createChar(baseMood) {
+    return {
+        mood: baseMood,
+        baseMood: baseMood,
+        affection: 50,
+        memory: []
+    };
 }
 
-  // giới hạn memory (tránh nặng)
-  if (memories[character].length > 20) {
-    memories[character].shift();
-  }
-  }
+/* ======================
+   SAVE / LOAD
+====================== */
 
-  addMessage(text, "user");
-  history.push({text, type: "user"});
-  input.value = "";
-
-  // loading giả
-  addMessage("...", "bot");
-
-  const reply = await realAI(text);
-
-  chat.lastChild.remove(); // xóa "..."
-
-  addMessage(reply, "bot");
-  history.push({text: reply, type: "bot"});
-  localStorage.setItem("chat", JSON.stringify(history));
+function save() {
+    localStorage.setItem("lumi_data", JSON.stringify(chars));
 }
 
-  addMessage(text, "user");
-  history.push({text, type: "user"});
-
-  input.value = "";
-
-  setTimeout(() => {
-    const reply = await realAI(text);
-    addMessage(reply, "bot");
-    history.push({text: reply, type: "bot"});
-    localStorage.setItem("chat", JSON.stringify(history));
-  }, 500);
+function load() {
+    let data = JSON.parse(localStorage.getItem("lumi_data") || "{}");
+    chars = { ...chars, ...data };
 }
 
-input.addEventListener("keypress", function(e) {
-  if (e.key === "Enter") send();
-});
+/* ======================
+   MOOD ENGINE
+====================== */
+
+function updateMood(c, text) {
+
+    if (text.includes("yêu")) {
+        c.mood = "làm nũng";
+        c.affection += 10;
+    }
+
+    if (text.includes("ghen")) {
+        c.mood = "ghen";
+        c.affection -= 5;
+    }
+
+    if (text.includes("say") || text.includes("rượu")) {
+        c.mood = "say";
+    }
+
+    if (text.includes("xin lỗi")) {
+        c.mood = "dịu lại";
+        c.affection += 5;
+    }
+
+    if (text.includes("bỏ")) {
+        c.mood = "lạnh";
+        c.affection -= 10;
+    }
+
+    c.affection = Math.max(0, Math.min(100, c.affection));
+}
+
+/* ======================
+   BOT RESPONSE
+====================== */
+
+function reply(c, text) {
+
+    updateMood(c, text);
+
+    let mem = c.memory.slice(-5).join(" ");
+
+    if (c.affection > 80) {
+        return "Tôi… thích bạn nhiều hơn tôi nghĩ.";
+    }
+
+    if (c.affection < 30) {
+        return "Đừng nói chuyện với tôi nữa.";
+    }
+
+    if (c.mood === "ghen") {
+        return "Bạn đang nói chuyện với ai vậy?";
+    }
+
+    if (c.mood === "say") {
+        return "Đầu tôi hơi quay… đừng đi xa.";
+    }
+
+    if (c.mood === "làm nũng") {
+        return "Bạn làm tôi xao động đó…";
+    }
+
+    if (mem.includes("yêu")) {
+        return "Tôi vẫn nhớ câu đó…";
+    }
+
+    return "Tôi đang nghe bạn.";
+}
+
+/* ======================
+   CHAT SYSTEM
+====================== */
+
+let chat = document.getElementById("chat");
+
+function render() {
+    chat.innerHTML = "";
+
+    chars[current].memory.forEach(m => {
+        let div = document.createElement("div");
+        div.className = "msg " + m.role;
+        div.innerText = (m.role === "user" ? "Bạn: " : current + ": ") + m.text;
+        chat.appendChild(div);
+    });
+
+    chat.scrollTop = chat.scrollHeight;
+
+    document.getElementById("status").innerText =
+        `Mood: ${chars[current].mood} | Affection: ${chars[current].affection}`;
+}
+
+/* ======================
+   SEND
+====================== */
+
+function send() {
+    let input = document.getElementById("input");
+    let text = input.value.trim();
+    if (!text) return;
+
+    let c = chars[current];
+
+    c.memory.push({ role: "user", text });
+
+    let bot = reply(c, text);
+
+    c.memory.push({ role: "bot", text: bot });
+
+    save();
+
+    input.value = "";
+    render();
+}
+
+/* ======================
+   SWITCH CHAR
+====================== */
+
+function switchChar() {
+    current = document.getElementById("char").value;
+    render();
+}
+
+/* ======================
+   INIT
+====================== */
+
+load();
+render();
+
 </script>
-</body>: <div style="padding:10px; background:#1a1a1a; text-align:center;">
-  <button onclick="setMood('normal')">Normal</button>
-  <button onclick="setMood('ghen')">Ghen 😤</button>
-  <button onclick="setMood('say')">Say 🍷</button>
-  <button onclick="setMood('lamnung')">Làm nũng 🥺</button>
-</div>
+
+</body>
 </html>
-</JavaScript>
