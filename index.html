@@ -1,254 +1,212 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>NeoVN Social AI</title>
+  <meta charset="UTF-8" />
+  <title>AI Chat App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<style>
-body{
-    margin:0;
-    font-family: Arial;
-    background:#f6fbff;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #fff;
+    }
 
-/* TOP SETTINGS */
-#settings{
-    position:absolute;
-    top:10px;
-    left:10px;
-    cursor:pointer;
-}
+    header {
+      padding: 10px;
+      background: #ffb6c1;
+    }
 
-/* MAIN PAGE */
-.page{
-    display:none;
-    padding:15px;
-}
-.page.active{
-    display:block;
-}
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+    }
 
-/* TOP SEARCH */
-#searchBar{
-    width:100%;
-    padding:10px;
-    border-radius:10px;
-    border:1px solid #ccc;
-}
+    .content {
+      padding: 10px;
+      padding-bottom: 70px;
+    }
 
-/* CHAR CARD */
-.card{
-    background:#e9f5ff;
-    padding:10px;
-    margin:8px 0;
-    border-radius:12px;
-}
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
 
-/* BOTTOM NAV */
-#nav{
-    position:fixed;
-    bottom:0;
-    width:100%;
-    display:flex;
-    background:#dff3ff;
-    justify-content:space-around;
-    padding:10px 0;
-}
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      background: #fff;
+      border-top: 1px solid #ddd;
+    }
 
-.navbtn{
-    cursor:pointer;
-    text-align:center;
-    flex:1;
-}
+    .nav-btn {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+    }
 
-/* CENTER + BUTTON */
-#plus{
-    position:fixed;
-    bottom:40px;
-    left:50%;
-    transform:translateX(-50%);
-    background:#7ec8ff;
-    width:60px;
-    height:60px;
-    border-radius:50%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    color:white;
-    font-size:30px;
-    cursor:pointer;
-}
+    .active {
+      color: pink;
+      font-weight: bold;
+    }
 
-/* CHAT */
-#chatbox{
-    height:300px;
-    overflow:auto;
-    background:white;
-    padding:10px;
-    border-radius:10px;
-    border:1px solid #ddd;
-}
+    .hidden {
+      display: none;
+    }
 
-/* INPUT */
-input,textarea,select,button{
-    width:100%;
-    margin-top:5px;
-    padding:8px;
-    border-radius:10px;
-    border:1px solid #ccc;
-}
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background: pink;
+      color: white;
+      margin-top: 5px;
+      width: 100%;
+    }
 
-button{
-    background:#7ec8ff;
-    color:white;
-    border:none;
-}
-
-/* TASK */
-.task{
-    background:#fff;
-    padding:10px;
-    border-radius:10px;
-    margin-top:8px;
-}
-</style>
+    textarea {
+      width: 100%;
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 5px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div id="settings">⚙</div>
+<!-- HEADER -->
+<header>
+  <input type="text" placeholder="Tìm kiếm nhân vật..." />
+</header>
 
 <!-- HOME -->
-<div class="page active" id="home">
-<input id="search" placeholder="Search character..." oninput="renderHome()">
-
-<h3>Recommended</h3>
-<div id="recom"></div>
+<div id="home" class="content">
+  <h3>Đề xuất</h3>
+  <div class="card">Nhân vật A</div>
+  <div class="card">Nhân vật B</div>
 </div>
 
 <!-- CHAT -->
-<div class="page" id="chat">
-<h3>Chat</h3>
-<div id="fav"></div>
-<div id="chatbox"></div>
-<input id="msg" placeholder="Type...">
-<button onclick="send()">Send</button>
-</div>
+<div id="chat" class="content hidden">
+  <h3>Yêu thích</h3>
+  <div class="card">❤️ Nhân vật đã lưu</div>
 
-<!-- PROFILE -->
-<div class="page" id="profile">
-<h3>Profile: {{user}}</h3>
-
-<div class="task">
-<h4>Tasks</h4>
-<button onclick="checkin()">Daily Check-in</button>
-<button onclick="invite()">Invite Friend (5 max)</button>
-<div id="taskInfo"></div>
-</div>
+  <h3>Đang chat</h3>
+  <div class="card">Chat 1</div>
 </div>
 
 <!-- CREATE -->
-<div class="page" id="create">
+<div id="create" class="content hidden">
+  <h3>Tạo nhân vật</h3>
 
-<h3>Create Character</h3>
+  <div class="card">
+    <h4>1. Cài đặt cơ bản</h4>
+    <input placeholder="Tên (0-40)" maxlength="40">
+    <input placeholder="Giới tính">
+    <input type="file">
+    <input placeholder="Tag">
+    <input placeholder="Slogan (0-100)" maxlength="100">
+    <textarea placeholder="Ghi chú"></textarea>
 
-<h4>1. Basic</h4>
-<input placeholder="Name">
-<select>
-<option>Male</option>
-<option>Female</option>
-</select>
-<input type="file">
-<input placeholder="Tags">
-<input placeholder="Slogan">
-<textarea placeholder="Creator note"></textarea>
-<select>
-<option>Public</option>
-<option>Private</option>
-</select>
+    <select>
+      <option>Công khai</option>
+      <option>Riêng tư</option>
+    </select>
+  </div>
 
-<h4>2. Public Info (3000)</h4>
-<textarea></textarea>
+  <div class="card">
+    <h4>2. Thông tin công khai</h4>
+    <textarea maxlength="3000"></textarea>
+  </div>
 
-<h4>3. Personality (60000)</h4>
-<textarea></textarea>
+  <div class="card">
+    <h4>3. Tính cách</h4>
+    <textarea maxlength="60000"></textarea>
+  </div>
 
-<h4>4. Intro</h4>
-<textarea placeholder="Biography"></textarea>
-<textarea placeholder="Opening dialogue"></textarea>
+  <div class="card">
+    <h4>4. Đối thoại mở đầu</h4>
+    <textarea placeholder="Tiểu sử (0-5000)" maxlength="5000"></textarea>
+    <textarea placeholder="Tin nhắn đầu tiên (0-3000)" maxlength="3000"></textarea>
+  </div>
 
-<button>Create</button>
+  <button>Tạo nhân vật</button>
+</div>
 
+<!-- PROFILE -->
+<div id="profile" class="content hidden">
+  <h3>Trang cá nhân</h3>
+
+  <div class="card">
+    <h4>Nhiệm vụ</h4>
+    <button>Điểm danh</button>
+    <button>Mời bạn (200⭐)</button>
+  </div>
+
+  <div class="card">
+    <h4>Cài đặt</h4>
+    <button>Chỉnh sửa {{user}}</button>
+  </div>
+
+  <button onclick="loginGoogle()">Đăng nhập Google</button>
+  <button onclick="loginEmail()">Đăng nhập Email</button>
 </div>
 
 <!-- NAV -->
-<div id="nav">
-<div class="navbtn" onclick="openPage('home')">🏠</div>
-<div class="navbtn" onclick="openPage('chat')">💬</div>
-<div class="navbtn" onclick="openPage('profile')">👤</div>
-<div class="navbtn" onclick="openPage('settingsPage')">⚙</div>
+<div class="bottom-nav">
+  <div class="nav-btn active" onclick="showTab('home')">🏠</div>
+  <div class="nav-btn" onclick="showTab('chat')">💬</div>
+  <div class="nav-btn" onclick="showTab('create')">➕</div>
+  <div class="nav-btn" onclick="showTab('profile')">👤</div>
 </div>
 
-<div id="plus" onclick="openPage('create')">+</div>
-
+<!-- SCRIPT -->
 <script>
+function showTab(tab) {
+  document.querySelectorAll('.content').forEach(e => e.classList.add('hidden'));
+  document.getElementById(tab).classList.remove('hidden');
 
-let user = localStorage.getItem("user") || "Guest";
-let stars = +localStorage.getItem("stars") || 0;
-let inviteCount = +localStorage.getItem("invite") || 0;
-
-/* NAV */
-function openPage(id){
-    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
+  document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
+  event.target.classList.add('active');
 }
-
-/* HOME */
-function renderHome(){
-    recom.innerHTML="✨ Suggested Characters...";
-}
-
-/* CHAT */
-function send(){
-    chatbox.innerHTML += "<div>You: "+msg.value+"</div>";
-    chatbox.innerHTML += "<div>AI: ...</div>";
-    msg.value="";
-}
-
-/* DAILY */
-function checkin(){
-    let day=new Date().getDay();
-
-    if(day===6){
-        stars+=100;
-    }else{
-        stars+=50;
-    }
-
-    localStorage.setItem("stars",stars);
-    alert("Stars: "+stars);
-}
-
-/* INVITE */
-function invite(){
-    if(inviteCount>=5){
-        alert("Max invite reached");
-        return;
-    }
-
-    inviteCount++;
-    stars+=200;
-
-    localStorage.setItem("invite",inviteCount);
-    localStorage.setItem("stars",stars);
-
-    taskInfo.innerHTML="Invites: "+inviteCount+"/5 | Stars: "+stars;
-}
-
-/* INIT */
-taskInfo.innerHTML="Invites: "+inviteCount+"/5 | Stars: "+stars;
-
 </script>
 
-</body>
+</body>: <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+// Google login
+function loginGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider);
+}
+
+// Email login
+function loginEmail() {
+  const email = prompt("Email:");
+  const pass = prompt("Password:");
+
+  auth.signInWithEmailAndPassword(email, pass)
+    .catch(() => {
+      auth.createUserWithEmailAndPassword(email, pass);
+    });
+}
+</script>
 </html>
