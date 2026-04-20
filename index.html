@@ -2,84 +2,97 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>NeoVN AI - Full Game</title>
+<title>NeoVN Social AI</title>
 
 <style>
 body{
     margin:0;
     font-family: Arial;
-    background: linear-gradient(135deg,#f7fcff,#ffffff);
-    color:#222;
+    background:#f6fbff;
 }
 
-/* TOP BAR */
-#topbar{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:10px;
-    background:#dff3ff;
-}
-
-/* MAIN */
-#main{
-    display:flex;
-    height:92vh;
-}
-
-/* CHAR LIST */
-#left{
-    width:30%;
-    border-right:1px solid #ddd;
-    padding:10px;
-    overflow:auto;
-}
-
-.card{
-    background:#eaf6ff;
-    padding:10px;
-    border-radius:12px;
-    margin-bottom:8px;
+/* TOP SETTINGS */
+#settings{
+    position:absolute;
+    top:10px;
+    left:10px;
     cursor:pointer;
 }
-.card:hover{background:#d6efff}
 
-.tag{
-    font-size:11px;
-    background:#dff1ff;
-    padding:2px 6px;
-    border-radius:8px;
-    margin-right:4px;
+/* MAIN PAGE */
+.page{
+    display:none;
+    padding:15px;
+}
+.page.active{
+    display:block;
 }
 
-/* RIGHT */
-#right{
-    flex:1;
+/* TOP SEARCH */
+#searchBar{
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+
+/* CHAR CARD */
+.card{
+    background:#e9f5ff;
+    padding:10px;
+    margin:8px 0;
+    border-radius:12px;
+}
+
+/* BOTTOM NAV */
+#nav{
+    position:fixed;
+    bottom:0;
+    width:100%;
     display:flex;
-    flex-direction:column;
-    padding:10px;
+    background:#dff3ff;
+    justify-content:space-around;
+    padding:10px 0;
 }
 
-/* SCENE */
-#scene{
+.navbtn{
+    cursor:pointer;
+    text-align:center;
     flex:1;
-    background:#f5fbff;
-    border-radius:15px;
-    padding:10px;
-    overflow:auto;
+}
+
+/* CENTER + BUTTON */
+#plus{
+    position:fixed;
+    bottom:40px;
+    left:50%;
+    transform:translateX(-50%);
+    background:#7ec8ff;
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    font-size:30px;
+    cursor:pointer;
 }
 
 /* CHAT */
-#chat{
-    height:180px;
+#chatbox{
+    height:300px;
     overflow:auto;
     background:white;
-    border-radius:12px;
-    padding:8px;
+    padding:10px;
+    border-radius:10px;
     border:1px solid #ddd;
 }
 
+/* INPUT */
 input,textarea,select,button{
+    width:100%;
+    margin-top:5px;
     padding:8px;
     border-radius:10px;
     border:1px solid #ccc;
@@ -89,259 +102,151 @@ button{
     background:#7ec8ff;
     color:white;
     border:none;
-    cursor:pointer;
 }
 
-/* AFF BAR */
-.bar{
-    height:10px;
-    background:#ddd;
+/* TASK */
+.task{
+    background:#fff;
+    padding:10px;
     border-radius:10px;
-}
-.fill{
-    height:100%;
-    background:#ff88c2;
-}
-
-/* MODE */
-.mode{
-    display:flex;
-    gap:5px;
-    margin-bottom:5px;
-}
-.mbtn{
-    flex:1;
-    text-align:center;
-    padding:6px;
-    background:#e3f3ff;
-    border-radius:8px;
-    cursor:pointer;
-}
-.mbtn.active{
-    background:#7ec8ff;
-    color:white;
+    margin-top:8px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="topbar">
-🔎 <input id="search" placeholder="Search character..." oninput="render()">
-⭐ <button onclick="daily()">Daily</button>
-<span id="stars">0</span>
+<div id="settings">⚙</div>
+
+<!-- HOME -->
+<div class="page active" id="home">
+<input id="search" placeholder="Search character..." oninput="renderHome()">
+
+<h3>Recommended</h3>
+<div id="recom"></div>
 </div>
 
-<div id="main">
+<!-- CHAT -->
+<div class="page" id="chat">
+<h3>Chat</h3>
+<div id="fav"></div>
+<div id="chatbox"></div>
+<input id="msg" placeholder="Type...">
+<button onclick="send()">Send</button>
+</div>
 
-<!-- LEFT -->
-<div id="left">
+<!-- PROFILE -->
+<div class="page" id="profile">
+<h3>Profile: {{user}}</h3>
+
+<div class="task">
+<h4>Tasks</h4>
+<button onclick="checkin()">Daily Check-in</button>
+<button onclick="invite()">Invite Friend (5 max)</button>
+<div id="taskInfo"></div>
+</div>
+</div>
+
+<!-- CREATE -->
+<div class="page" id="create">
 
 <h3>Create Character</h3>
 
-<input id="name" placeholder="Name">
-<input id="avatar" placeholder="Avatar (url)">
-<input id="tags" placeholder="Tags: cute, tsun, rich">
-<input id="age" placeholder="Age">
-
-<select id="mood">
-<option>Gentle</option>
-<option>Cold</option>
-<option>Tsundere</option>
-<option>Yandere light</option>
-<option>Friendly</option>
+<h4>1. Basic</h4>
+<input placeholder="Name">
+<select>
+<option>Male</option>
+<option>Female</option>
+</select>
+<input type="file">
+<input placeholder="Tags">
+<input placeholder="Slogan">
+<textarea placeholder="Creator note"></textarea>
+<select>
+<option>Public</option>
+<option>Private</option>
 </select>
 
-<textarea id="prompt" placeholder="AI personality prompt"></textarea>
+<h4>2. Public Info (3000)</h4>
+<textarea></textarea>
 
-<button onclick="create()">+ Create</button>
+<h4>3. Personality (60000)</h4>
+<textarea></textarea>
 
-<hr>
-<div id="list"></div>
+<h4>4. Intro</h4>
+<textarea placeholder="Biography"></textarea>
+<textarea placeholder="Opening dialogue"></textarea>
 
-</div>
-
-<!-- RIGHT -->
-<div id="right">
-
-<div class="mode">
-<div class="mbtn active" onclick="setMode('chat')">Chat</div>
-<div class="mbtn" onclick="setMode('role')">Roleplay</div>
-<div class="mbtn" onclick="setMode('memory')">Memory</div>
-<div class="mbtn" onclick="setMode('route')">Route</div>
-</div>
-
-<div id="scene">
-<div id="info"></div>
-
-<div class="bar"><div class="fill" id="aff"></div></div>
-
-<div id="chat"></div>
-</div>
-
-<input id="msg" placeholder="Type...">
-<button onclick="send()">Send</button>
+<button>Create</button>
 
 </div>
 
+<!-- NAV -->
+<div id="nav">
+<div class="navbtn" onclick="openPage('home')">🏠</div>
+<div class="navbtn" onclick="openPage('chat')">💬</div>
+<div class="navbtn" onclick="openPage('profile')">👤</div>
+<div class="navbtn" onclick="openPage('settingsPage')">⚙</div>
 </div>
+
+<div id="plus" onclick="openPage('create')">+</div>
 
 <script>
 
-let data = JSON.parse(localStorage.getItem("neo_vn_v3")||"{}");
-if(!data.chars) data.chars={};
-if(!data.stars) data.stars=0;
-if(!data.routeProgress) data.routeProgress={};
+let user = localStorage.getItem("user") || "Guest";
+let stars = +localStorage.getItem("stars") || 0;
+let inviteCount = +localStorage.getItem("invite") || 0;
 
-let current=null;
-let mode="chat";
-
-function save(){
-    localStorage.setItem("neo_vn_v3",JSON.stringify(data));
-    stars.innerText=data.stars;
-}
-save();
-
-/* CREATE */
-function create(){
-    let c={
-        name:name.value,
-        avatar:avatar.value,
-        tags:tags.value.split(","),
-        age:age.value,
-        mood:mood.value,
-        prompt:prompt.value,
-        affinity:0,
-        level:1,
-        memory:[],
-        chat:[],
-        route:"locked"
-    };
-
-    if(!c.name) return;
-
-    data.chars[c.name]=c;
-    save();
-    render();
+/* NAV */
+function openPage(id){
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
 }
 
-/* LIST */
-function render(){
-    let q=search.value?.toLowerCase()||"";
-
-    list.innerHTML=Object.values(data.chars)
-    .filter(c=>c.name.toLowerCase().includes(q))
-    .map(c=>`
-        <div class="card" onclick="openChar('${c.name}')">
-            <b>${c.name}</b><br>
-            ${c.tags.map(t=>`<span class="tag">${t}</span>`).join("")}<br>
-            ❤️ ${c.affinity} | Lv ${c.level}
-        </div>
-    `).join("");
+/* HOME */
+function renderHome(){
+    recom.innerHTML="✨ Suggested Characters...";
 }
 
-/* OPEN */
-function openChar(n){
-    current=data.chars[n];
-    renderChat();
-}
-
-/* MODE */
-function setMode(m){
-    mode=m;
-    document.querySelectorAll(".mbtn").forEach(x=>x.classList.remove("active"));
-    event.target.classList.add("active");
-}
-
-/* RENDER */
-function renderChat(){
-    if(!current) return;
-
-    info.innerHTML=`
-        <h2>${current.name}</h2>
-        <div>Route: ${current.route}</div>
-    `;
-
-    aff.style.width=Math.min(current.affinity*10,100)+"%";
-
-    chat.innerHTML=current.chat.map(m=>"<div>"+m+"</div>").join("");
-}
-
-/* AI CORE */
-function AI(c,t){
-
-    c.memory.push(t);
-    if(c.memory.length>10) c.memory.shift();
-
-    if(mode==="memory"){
-        return "Bạn từng nói: " + (c.memory[0]||"...");
-    }
-
-    if(mode==="route"){
-        if(c.affinity>8){
-            c.route="Unlocked Love Route 💖";
-        }
-        return "Route status: "+c.route;
-    }
-
-    if(mode==="role"){
-        return "(*roleplay*) " + c.name + " reacts to: " + t;
-    }
-
-    if(c.mood==="Tsundere"){
-        return t.includes("love") ? "Đ-đừng nói vậy!!" : "Hừ...";
-    }
-
-    if(c.mood==="Cold"){
-        return "…";
-    }
-
-    if(c.affinity>6){
-        return "Mình… bắt đầu quan tâm bạn hơn rồi.";
-    }
-
-    return "Ừm.";
-}
-
-/* SEND */
+/* CHAT */
 function send(){
-    if(!current) return;
-
-    let t=msg.value;
-    if(!t) return;
-
-    current.chat.push("You: "+t);
-
-    let r=AI(current,t);
-
-    current.chat.push(current.name+": "+r);
-
-    if(t.includes("love")||t.includes("cute")){
-        current.affinity++;
-        current.level = Math.floor(current.affinity/3)+1;
-    }
-
-    save();
+    chatbox.innerHTML += "<div>You: "+msg.value+"</div>";
+    chatbox.innerHTML += "<div>AI: ...</div>";
     msg.value="";
-    renderChat();
 }
 
-/* DAILY SYSTEM */
-function daily(){
-    let day=new Date().getDay(); // 0-6
+/* DAILY */
+function checkin(){
+    let day=new Date().getDay();
 
-    if(day===0){
-        data.stars+=100;
-        alert("+100 stars (day 7 bonus)");
+    if(day===6){
+        stars+=100;
     }else{
-        data.stars+=50;
-        alert("+50 stars");
+        stars+=50;
     }
 
-    save();
+    localStorage.setItem("stars",stars);
+    alert("Stars: "+stars);
 }
 
-render();
+/* INVITE */
+function invite(){
+    if(inviteCount>=5){
+        alert("Max invite reached");
+        return;
+    }
+
+    inviteCount++;
+    stars+=200;
+
+    localStorage.setItem("invite",inviteCount);
+    localStorage.setItem("stars",stars);
+
+    taskInfo.innerHTML="Invites: "+inviteCount+"/5 | Stars: "+stars;
+}
+
+/* INIT */
+taskInfo.innerHTML="Invites: "+inviteCount+"/5 | Stars: "+stars;
 
 </script>
 
