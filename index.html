@@ -2,26 +2,84 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Neo Doki Style AI</title>
+<title>NeoVN AI - Full Game</title>
 
 <style>
 body{
     margin:0;
     font-family: Arial;
-    background: linear-gradient(135deg,#f5fbff,#ffffff);
+    background: linear-gradient(135deg,#f7fcff,#ffffff);
     color:#222;
 }
 
 /* TOP BAR */
 #topbar{
     display:flex;
-    padding:10px;
-    background:#dff1ff;
-    gap:10px;
     align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#dff3ff;
 }
 
-input, select, textarea, button{
+/* MAIN */
+#main{
+    display:flex;
+    height:92vh;
+}
+
+/* CHAR LIST */
+#left{
+    width:30%;
+    border-right:1px solid #ddd;
+    padding:10px;
+    overflow:auto;
+}
+
+.card{
+    background:#eaf6ff;
+    padding:10px;
+    border-radius:12px;
+    margin-bottom:8px;
+    cursor:pointer;
+}
+.card:hover{background:#d6efff}
+
+.tag{
+    font-size:11px;
+    background:#dff1ff;
+    padding:2px 6px;
+    border-radius:8px;
+    margin-right:4px;
+}
+
+/* RIGHT */
+#right{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    padding:10px;
+}
+
+/* SCENE */
+#scene{
+    flex:1;
+    background:#f5fbff;
+    border-radius:15px;
+    padding:10px;
+    overflow:auto;
+}
+
+/* CHAT */
+#chat{
+    height:180px;
+    overflow:auto;
+    background:white;
+    border-radius:12px;
+    padding:8px;
+    border:1px solid #ddd;
+}
+
+input,textarea,select,button{
     padding:8px;
     border-radius:10px;
     border:1px solid #ccc;
@@ -34,146 +92,95 @@ button{
     cursor:pointer;
 }
 
-/* LAYOUT */
-#container{
-    display:flex;
-    height:90vh;
+/* AFF BAR */
+.bar{
+    height:10px;
+    background:#ddd;
+    border-radius:10px;
+}
+.fill{
+    height:100%;
+    background:#ff88c2;
 }
 
-/* LEFT CHAR PANEL */
-#left{
-    width:30%;
-    border-right:1px solid #ddd;
-    padding:10px;
-    overflow:auto;
-}
-
-/* CHAT PANEL */
-#right{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    padding:10px;
-}
-
-/* CHAR CARD */
-.card{
-    background:#eaf6ff;
-    padding:10px;
-    margin-bottom:8px;
-    border-radius:12px;
-    cursor:pointer;
-}
-.card:hover{background:#d8efff}
-
-/* CHAT BOX */
-#chatbox{
-    flex:1;
-    background:#f7fcff;
-    border-radius:12px;
-    padding:10px;
-    overflow:auto;
-}
-
-/* MODULES */
-#modules{
+/* MODE */
+.mode{
     display:flex;
     gap:5px;
     margin-bottom:5px;
 }
-
-.module{
+.mbtn{
     flex:1;
-    background:#e1f2ff;
-    padding:6px;
-    border-radius:8px;
     text-align:center;
+    padding:6px;
+    background:#e3f3ff;
+    border-radius:8px;
     cursor:pointer;
 }
-
-.module.active{
+.mbtn.active{
     background:#7ec8ff;
     color:white;
-}
-
-/* AFFINITY BAR */
-.bar{
-    height:10px;
-    background:#ddd;
-    border-radius:20px;
-    overflow:hidden;
-}
-.bar-fill{
-    height:100%;
-    background:#ff8ac6;
-}
-
-/* TAG */
-.tag{
-    display:inline-block;
-    padding:2px 6px;
-    background:#dff0ff;
-    border-radius:8px;
-    font-size:11px;
-    margin-right:4px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- TOP BAR -->
 <div id="topbar">
-    🔎 <input id="search" placeholder="Tìm character..." oninput="renderChars()">
-    ⭐ <button onclick="daily()">Check-in</button>
-    <span id="starBox">0 ⭐</span>
+🔎 <input id="search" placeholder="Search character..." oninput="render()">
+⭐ <button onclick="daily()">Daily</button>
+<span id="stars">0</span>
 </div>
 
-<div id="container">
+<div id="main">
 
 <!-- LEFT -->
 <div id="left">
-    <h3>Tạo Character</h3>
 
-    <input id="name" placeholder="Tên">
-    <input id="avatar" placeholder="Avatar URL">
-    <input id="tags" placeholder="Tags (cute, tsun, rich...)">
-    <input id="age" placeholder="Tuổi">
+<h3>Create Character</h3>
 
-    <select id="mood">
-        <option>Dịu dàng</option>
-        <option>Lạnh lùng</option>
-        <option>Tsundere</option>
-        <option>Yandere nhẹ</option>
-        <option>Hiền</option>
-    </select>
+<input id="name" placeholder="Name">
+<input id="avatar" placeholder="Avatar (url)">
+<input id="tags" placeholder="Tags: cute, tsun, rich">
+<input id="age" placeholder="Age">
 
-    <textarea id="desc" placeholder="Mô tả"></textarea>
-    <textarea id="prompt" placeholder="AI personality prompt"></textarea>
+<select id="mood">
+<option>Gentle</option>
+<option>Cold</option>
+<option>Tsundere</option>
+<option>Yandere light</option>
+<option>Friendly</option>
+</select>
 
-    <button onclick="createChar()">+ Tạo</button>
+<textarea id="prompt" placeholder="AI personality prompt"></textarea>
 
-    <hr>
-    <div id="list"></div>
+<button onclick="create()">+ Create</button>
+
+<hr>
+<div id="list"></div>
+
 </div>
 
 <!-- RIGHT -->
 <div id="right">
 
-<div id="modules">
-    <div class="module active" onclick="setMode('chat')">💬 Chat</div>
-    <div class="module" onclick="setMode('role')">🎭 Roleplay</div>
-    <div class="module" onclick="setMode('memory')">🧠 Memory</div>
-    <div class="module" onclick="setMode('love')">💗 Affection</div>
+<div class="mode">
+<div class="mbtn active" onclick="setMode('chat')">Chat</div>
+<div class="mbtn" onclick="setMode('role')">Roleplay</div>
+<div class="mbtn" onclick="setMode('memory')">Memory</div>
+<div class="mbtn" onclick="setMode('route')">Route</div>
 </div>
 
+<div id="scene">
 <div id="info"></div>
-<div class="bar"><div class="bar-fill" id="affBar"></div></div>
 
-<div id="chatbox"></div>
+<div class="bar"><div class="fill" id="aff"></div></div>
 
-<input id="msg" placeholder="Nhập tin nhắn...">
-<button onclick="send()">Gửi</button>
+<div id="chat"></div>
+</div>
+
+<input id="msg" placeholder="Type...">
+<button onclick="send()">Send</button>
 
 </div>
 
@@ -181,80 +188,119 @@ button{
 
 <script>
 
-let data = JSON.parse(localStorage.getItem("neo_doki_v2")||"{}");
+let data = JSON.parse(localStorage.getItem("neo_vn_v3")||"{}");
 if(!data.chars) data.chars={};
 if(!data.stars) data.stars=0;
-if(!data.day) data.day=0;
+if(!data.routeProgress) data.routeProgress={};
 
 let current=null;
 let mode="chat";
 
 function save(){
-    localStorage.setItem("neo_doki_v2",JSON.stringify(data));
-    starBox.innerText=data.stars+" ⭐";
+    localStorage.setItem("neo_vn_v3",JSON.stringify(data));
+    stars.innerText=data.stars;
 }
-
 save();
 
-/* CREATE CHAR */
-function createChar(){
+/* CREATE */
+function create(){
     let c={
         name:name.value,
         avatar:avatar.value,
         tags:tags.value.split(","),
         age:age.value,
         mood:mood.value,
-        desc:desc.value,
         prompt:prompt.value,
         affinity:0,
+        level:1,
         memory:[],
-        chat:[]
+        chat:[],
+        route:"locked"
     };
 
     if(!c.name) return;
 
     data.chars[c.name]=c;
     save();
-    renderChars();
+    render();
 }
 
-/* RENDER LIST */
-function renderChars(){
+/* LIST */
+function render(){
     let q=search.value?.toLowerCase()||"";
 
     list.innerHTML=Object.values(data.chars)
-    .filter(c=>c.name.toLowerCase().includes(q) || c.tags.join(",").includes(q))
+    .filter(c=>c.name.toLowerCase().includes(q))
     .map(c=>`
         <div class="card" onclick="openChar('${c.name}')">
             <b>${c.name}</b><br>
-            <div>${c.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
-            ❤️ ${c.affinity}
+            ${c.tags.map(t=>`<span class="tag">${t}</span>`).join("")}<br>
+            ❤️ ${c.affinity} | Lv ${c.level}
         </div>
     `).join("");
 }
 
-/* OPEN CHAR */
-function openChar(name){
-    current=data.chars[name];
+/* OPEN */
+function openChar(n){
+    current=data.chars[n];
     renderChat();
 }
 
 /* MODE */
 function setMode(m){
     mode=m;
-    document.querySelectorAll(".module").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".mbtn").forEach(x=>x.classList.remove("active"));
     event.target.classList.add("active");
 }
 
-/* CHAT RENDER */
+/* RENDER */
 function renderChat(){
     if(!current) return;
 
-    info.innerHTML=`<h3>${current.name}</h3>`;
+    info.innerHTML=`
+        <h2>${current.name}</h2>
+        <div>Route: ${current.route}</div>
+    `;
 
-    affBar.style.width=Math.min(current.affinity*10,100)+"%";
+    aff.style.width=Math.min(current.affinity*10,100)+"%";
 
-    chatbox.innerHTML=current.chat.map(m=>"<div>"+m+"</div>").join("");
+    chat.innerHTML=current.chat.map(m=>"<div>"+m+"</div>").join("");
+}
+
+/* AI CORE */
+function AI(c,t){
+
+    c.memory.push(t);
+    if(c.memory.length>10) c.memory.shift();
+
+    if(mode==="memory"){
+        return "Bạn từng nói: " + (c.memory[0]||"...");
+    }
+
+    if(mode==="route"){
+        if(c.affinity>8){
+            c.route="Unlocked Love Route 💖";
+        }
+        return "Route status: "+c.route;
+    }
+
+    if(mode==="role"){
+        return "(*roleplay*) " + c.name + " reacts to: " + t;
+    }
+
+    if(c.mood==="Tsundere"){
+        return t.includes("love") ? "Đ-đừng nói vậy!!" : "Hừ...";
+    }
+
+    if(c.mood==="Cold"){
+        return "…";
+    }
+
+    if(c.affinity>6){
+        return "Mình… bắt đầu quan tâm bạn hơn rồi.";
+    }
+
+    return "Ừm.";
 }
 
 /* SEND */
@@ -264,75 +310,38 @@ function send(){
     let t=msg.value;
     if(!t) return;
 
-    current.chat.push("🧑 Bạn: "+t);
-    current.memory.push(t);
+    current.chat.push("You: "+t);
 
-    let reply=AI(current,t);
+    let r=AI(current,t);
 
-    current.chat.push("💬 "+current.name+": "+reply);
+    current.chat.push(current.name+": "+r);
 
-    if(t.includes("cute")||t.includes("yêu")) current.affinity++;
+    if(t.includes("love")||t.includes("cute")){
+        current.affinity++;
+        current.level = Math.floor(current.affinity/3)+1;
+    }
 
     save();
     msg.value="";
     renderChat();
 }
 
-/* AI ENGINE */
-function AI(c,t){
-
-    if(mode=="role"){
-        return "(*đang nhập vai*) " + c.name + " phản ứng với: " + t;
-    }
-
-    if(mode=="memory"){
-        return "Mình nhớ bạn từng nói: " + (c.memory[c.memory.length-2]||"...");
-    }
-
-    if(mode=="love"){
-        if(c.affinity>5) return "Mình… thích bạn nhiều hơn rồi.";
-        return "Hừ…";
-    }
-
-    if(c.mood=="Tsundere"){
-        return t.includes("yêu") ? "Đ-đừng nói vậy!!" : "Hừ…";
-    }
-
-    if(c.mood=="Lạnh lùng"){
-        return "…";
-    }
-
-    if(c.mood=="Dịu dàng"){
-        return "Mình đang nghe bạn 💙";
-    }
-
-    return "Ừm.";
-}
-
 /* DAILY SYSTEM */
 function daily(){
-    let today=new Date().getDate();
+    let day=new Date().getDay(); // 0-6
 
-    if(data.day===today){
-        alert("Hôm nay nhận rồi!");
-        return;
-    }
-
-    data.day=today;
-
-    if(today%7===0){
+    if(day===0){
         data.stars+=100;
-        alert("+100 sao (ngày 7)");
+        alert("+100 stars (day 7 bonus)");
     }else{
         data.stars+=50;
-        alert("+50 sao");
+        alert("+50 stars");
     }
 
     save();
 }
 
-/* INIT */
-renderChars();
+render();
 
 </script>
 
