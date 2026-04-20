@@ -2,234 +2,309 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>NeoChat OS</title>
+<title>Neo VN AI Chat</title>
+
 <style>
-body {
+body{
     margin:0;
     font-family: Arial;
-    background: linear-gradient(135deg,#1e1e2f,#111);
-    color:white;
-    overflow:hidden;
+    background: linear-gradient(135deg,#eaf6ff,#ffffff);
+    color:#222;
 }
 
 /* Desktop */
-#desktop {
+#desktop{
     display:flex;
-    flex-wrap:wrap;
-    padding:20px;
     gap:15px;
+    padding:20px;
 }
 
-/* App icon */
-.app {
-    width:100px;
-    height:100px;
-    background:#2a2a40;
-    border-radius:12px;
+.app{
+    width:110px;
+    height:110px;
+    border-radius:18px;
+    background:#dff1ff;
     display:flex;
+    flex-direction:column;
     align-items:center;
     justify-content:center;
     cursor:pointer;
-    flex-direction:column;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
 }
-.app:hover {
-    background:#3a3a60;
-}
+.app:hover{background:#cfe9ff}
 
 /* Window */
-.window {
+.window{
     position:absolute;
-    top:50px;
-    left:50px;
-    width:360px;
-    height:500px;
-    background:#1c1c2b;
-    border:1px solid #444;
-    border-radius:10px;
+    top:60px;
+    left:60px;
+    width:420px;
+    height:560px;
+    background:white;
+    border-radius:15px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);
     display:none;
     flex-direction:column;
 }
-.titlebar {
-    background:#2b2b44;
+
+.titlebar{
+    background:#d7f0ff;
     padding:10px;
-    cursor:move;
+    font-weight:bold;
+    border-radius:15px 15px 0 0;
 }
-.content {
-    flex:1;
+
+.content{
     padding:10px;
+    flex:1;
     overflow:auto;
 }
 
-input, button, textarea {
+input, textarea, select, button{
     width:100%;
-    margin-top:5px;
+    margin-top:6px;
     padding:8px;
-    border:none;
-    border-radius:5px;
+    border-radius:10px;
+    border:1px solid #ccc;
 }
 
-button {
-    background:#6c63ff;
+button{
+    background:#7cc7ff;
     color:white;
+    border:none;
     cursor:pointer;
 }
 
-.chat-box {
-    height:300px;
+.chatbox{
+    height:280px;
     overflow:auto;
-    background:#111;
-    padding:5px;
-    border-radius:5px;
+    background:#f5fbff;
+    padding:8px;
+    border-radius:10px;
 }
 
-.msg-user { color:#4dd0e1; }
-.msg-ai { color:#ffd54f; }
+.msg-user{color:#2a7fff}
+.msg-ai{color:#ff5c8a}
 
-.star {
-    color:gold;
+.badge{
+    font-size:12px;
+    padding:2px 6px;
+    border-radius:8px;
+    background:#e8f6ff;
+    margin-left:5px;
+}
+
+.small{
+    font-size:12px;
+    opacity:0.7;
 }
 </style>
 </head>
+
 <body>
 
 <div id="desktop">
-    <div class="app" onclick="openApp('charApp')">👤<br>Characters</div>
-    <div class="app" onclick="openApp('chatApp')">💬<br>Chat</div>
-    <div class="app" onclick="dailyReward()">🎁<br>Daily</div>
+    <div class="app" onclick="openWin('charWin')">👤<br>Characters</div>
+    <div class="app" onclick="openWin('chatWin')">💬<br>Chat</div>
+    <div class="app" onclick="daily()">🎁<br>Daily</div>
 </div>
 
-<!-- CHARACTER APP -->
-<div class="window" id="charApp">
-    <div class="titlebar">Create Character</div>
-    <div class="content">
-        <input id="cName" placeholder="Tên nhân vật">
-        <textarea id="cDesc" placeholder="Mô tả tính cách"></textarea>
-        <button onclick="createChar()">Tạo</button>
-        <div id="charList"></div>
-    </div>
+<!-- CHARACTER WINDOW -->
+<div class="window" id="charWin">
+<div class="titlebar">Create Character (VN AI)</div>
+<div class="content">
+
+<input id="name" placeholder="Tên nhân vật">
+<input id="avatar" placeholder="URL ảnh avatar">
+
+<textarea id="desc" placeholder="Mô tả nhân vật (background)"></textarea>
+
+<textarea id="prompt" placeholder="AI personality prompt (rất quan trọng)"></textarea>
+
+<select id="gender">
+<option>Nam</option>
+<option>Nữ</option>
+<option>Khác</option>
+</select>
+
+<input id="age" placeholder="Tuổi">
+
+<select id="mood">
+<option>Hiền</option>
+<option>Lạnh lùng</option>
+<option>Dịu dàng</option>
+<option>Tsundere</option>
+<option>Yandere (nhẹ)</option>
+</select>
+
+<button onclick="createChar()">+ Tạo nhân vật</button>
+
+<div id="list"></div>
+
+</div>
 </div>
 
-<!-- CHAT APP -->
-<div class="window" id="chatApp">
-    <div class="titlebar">Chat</div>
-    <div class="content">
-        <select id="charSelect"></select>
-        <div id="affinity"></div>
+<!-- CHAT WINDOW -->
+<div class="window" id="chatWin">
+<div class="titlebar">Chat AI Character</div>
+<div class="content">
 
-        <div class="chat-box" id="chatBox"></div>
+<select id="charSelect"></select>
 
-        <input id="msg" placeholder="Nhập tin nhắn...">
-        <button onclick="sendMsg()">Gửi</button>
-    </div>
+<div id="info"></div>
+
+<div class="chatbox" id="chatbox"></div>
+
+<input id="msg" placeholder="Nhập tin nhắn...">
+<button onclick="send()">Gửi</button>
+
+</div>
 </div>
 
 <script>
-let data = JSON.parse(localStorage.getItem("neo_data") || "{}");
-if(!data.chars) data.chars = {};
-if(!data.stars) data.stars = 0;
+let data = JSON.parse(localStorage.getItem("neo_vn")||"{}");
+if(!data.chars) data.chars={};
+if(!data.stars) data.stars=0;
 
 function save(){
-    localStorage.setItem("neo_data", JSON.stringify(data));
+    localStorage.setItem("neo_vn",JSON.stringify(data));
 }
 
-function openApp(id){
+function openWin(id){
     document.getElementById(id).style.display="flex";
-    if(id==="chatApp") loadChars();
-    if(id==="charApp") renderChars();
+    if(id=="charWin") render();
+    if(id=="chatWin") loadChars();
 }
 
+/* CREATE CHARACTER */
 function createChar(){
-    let name = cName.value;
-    let desc = cDesc.value;
-    if(!name) return;
-
-    data.chars[name] = {
-        name,
-        desc,
+    let c = {
+        name:name.value,
+        avatar:avatar.value,
+        desc:desc.value,
+        prompt:prompt.value,
+        gender:gender.value,
+        age:age.value,
+        mood:mood.value,
         affinity:0,
+        memory:[],
         chat:[]
     };
+
+    if(!c.name) return;
+
+    data.chars[c.name]=c;
     save();
-    renderChars();
+    render();
     alert("Đã tạo nhân vật!");
 }
 
-function renderChars(){
-    let list = Object.values(data.chars);
-    charList.innerHTML = list.map(c=>`
-        <div>👤 ${c.name} (❤️ ${c.affinity})</div>
-    `).join("");
+/* LIST */
+function render(){
+    list.innerHTML = Object.values(data.chars).map(c=>
+        `<div class="small">👤 ${c.name} | ❤️ ${c.affinity}</div>`
+    ).join("");
 }
 
+/* CHAT LOAD */
 function loadChars(){
     charSelect.innerHTML = Object.keys(data.chars)
     .map(c=>`<option>${c}</option>`).join("");
 
-    updateAffinity();
+    update();
 }
 
-function updateAffinity(){
-    let c = data.chars[charSelect.value];
-    if(!c) return;
-    affinity.innerHTML = "Thiện cảm: " + "⭐".repeat(Math.max(0,c.affinity));
-    renderChat();
-}
+charSelect?.addEventListener("change",update);
 
-charSelect?.addEventListener("change", updateAffinity);
-
-function sendMsg(){
+function update(){
     let c = data.chars[charSelect.value];
     if(!c) return;
 
-    let text = msg.value;
-    if(!text) return;
+    info.innerHTML = `
+    <div>
+    <b>${c.name}</b>
+    <span class="badge">${c.mood}</span><br>
+    ❤️ Affinity: ${c.affinity}<br>
+    </div>
+    `;
 
-    c.chat.push("You: " + text);
+    chatbox.innerHTML = c.chat.map(m=>
+        `<div>${m}</div>`
+    ).join("");
+}
 
-    // fake AI reply
-    let reply = aiReply(text, c);
-    c.chat.push(c.name + ": " + reply);
+/* AI LOGIC */
+function send(){
+    let c = data.chars[charSelect.value];
+    if(!c) return;
 
-    if(text.includes("cute") || text.includes("yêu")){
-        c.affinity++;
-    }
+    let t = msg.value;
+    if(!t) return;
+
+    c.chat.push("🧑 Bạn: "+t);
+
+    c.memory.push(t);
+    if(c.memory.length>8) c.memory.shift();
+
+    let reply = ai(c,t);
+
+    c.chat.push("💬 "+c.name+": "+reply);
+
+    if(t.includes("yêu")||t.includes("cute")) c.affinity++;
 
     save();
     msg.value="";
-    updateAffinity();
+    update();
 }
 
-function aiReply(t, c){
-    if(c.affinity > 3){
-        return "Mình thích bạn hơn rồi đó...";
+/* SIMPLE AI PERSONALITY ENGINE */
+function ai(c,t){
+
+    let base = c.prompt || "";
+
+    if(c.mood=="Lạnh lùng"){
+        if(c.affinity<2) return "…Ừ.";
+        return "Tôi đang nghe.";
     }
-    if(t.includes("hello")) return "Xin chào!";
-    return "Hmm... mình đang nghe đây.";
+
+    if(c.mood=="Tsundere"){
+        if(t.includes("yêu")) return "Đ-đừng nói vậy! 😳";
+        return "Hừ…";
+    }
+
+    if(c.mood=="Dịu dàng"){
+        return "Ừm… mình đang nghe bạn đây 💙";
+    }
+
+    if(c.mood=="Yandere (nhẹ)"){
+        if(t.includes("ai khác")){
+            return "Bạn đang nói về ai…?";
+        }
+        return "Chỉ cần bạn ở đây là đủ…";
+    }
+
+    if(c.affinity>5){
+        return "Mình bắt đầu thích bạn nhiều hơn rồi…";
+    }
+
+    return "Mình hiểu rồi.";
 }
 
-function renderChat(){
-    let c = data.chars[charSelect.value];
-    if(!c) return;
-
-    chatBox.innerHTML = c.chat.map(m=>{
-        return `<div>${m.includes("You:")?'<span class="msg-user">'+m+'</span>':'<span class="msg-ai">'+m+'</span>'}</div>`;
-    }).join("");
-}
-
-function dailyReward(){
-    let last = localStorage.getItem("last_day");
+/* DAILY STAR */
+function daily(){
+    let last = localStorage.getItem("day");
     let today = new Date().toDateString();
 
-    if(last === today){
-        alert("Hôm nay bạn đã nhận rồi!");
+    if(last==today){
+        alert("Hôm nay đã nhận rồi!");
         return;
     }
 
     data.stars += 3;
-    localStorage.setItem("last_day", today);
+    localStorage.setItem("day",today);
     save();
 
-    alert("Nhận 3 sao!");
+    alert("+3 sao!");
 }
 </script>
 
