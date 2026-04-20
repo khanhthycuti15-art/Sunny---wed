@@ -2,243 +2,235 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Lumi Chat</title>
-
+<title>NeoChat OS</title>
 <style>
 body {
-    margin: 0;
+    margin:0;
     font-family: Arial;
-    background: #0b0c18;
-    color: white;
+    background: linear-gradient(135deg,#1e1e2f,#111);
+    color:white;
+    overflow:hidden;
 }
 
-#app {
-    max-width: 800px;
-    margin: auto;
-    padding: 20px;
+/* Desktop */
+#desktop {
+    display:flex;
+    flex-wrap:wrap;
+    padding:20px;
+    gap:15px;
 }
 
-#top {
-    display: flex;
-    gap: 10px;
-    align-items: center;
+/* App icon */
+.app {
+    width:100px;
+    height:100px;
+    background:#2a2a40;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    flex-direction:column;
+}
+.app:hover {
+    background:#3a3a60;
 }
 
-select, input, button {
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
+/* Window */
+.window {
+    position:absolute;
+    top:50px;
+    left:50px;
+    width:360px;
+    height:500px;
+    background:#1c1c2b;
+    border:1px solid #444;
+    border-radius:10px;
+    display:none;
+    flex-direction:column;
+}
+.titlebar {
+    background:#2b2b44;
+    padding:10px;
+    cursor:move;
+}
+.content {
+    flex:1;
+    padding:10px;
+    overflow:auto;
 }
 
-#chat {
-    height: 65vh;
-    overflow-y: auto;
-    background: #14162a;
-    border-radius: 10px;
-    padding: 10px;
-    margin-top: 10px;
-    border: 1px solid #2a2d55;
+input, button, textarea {
+    width:100%;
+    margin-top:5px;
+    padding:8px;
+    border:none;
+    border-radius:5px;
 }
 
-.msg { margin: 8px 0; }
-.user { text-align: right; color: #7dd3fc; }
-.bot { text-align: left; color: #fda4af; }
+button {
+    background:#6c63ff;
+    color:white;
+    cursor:pointer;
+}
 
-#status {
-    font-size: 13px;
-    color: #a1a1aa;
+.chat-box {
+    height:300px;
+    overflow:auto;
+    background:#111;
+    padding:5px;
+    border-radius:5px;
+}
+
+.msg-user { color:#4dd0e1; }
+.msg-ai { color:#ffd54f; }
+
+.star {
+    color:gold;
 }
 </style>
 </head>
-
 <body>
 
-<div id="app">
-
-<div id="top">
-    <select id="char" onchange="switchChar()">
-        <option value="Luna">Luna</option>
-        <option value="Noir">Noir</option>
-        <option value="Mira">Mira</option>
-    </select>
-
-    <div id="status"></div>
+<div id="desktop">
+    <div class="app" onclick="openApp('charApp')">👤<br>Characters</div>
+    <div class="app" onclick="openApp('chatApp')">💬<br>Chat</div>
+    <div class="app" onclick="dailyReward()">🎁<br>Daily</div>
 </div>
 
-<div id="chat"></div>
+<!-- CHARACTER APP -->
+<div class="window" id="charApp">
+    <div class="titlebar">Create Character</div>
+    <div class="content">
+        <input id="cName" placeholder="Tên nhân vật">
+        <textarea id="cDesc" placeholder="Mô tả tính cách"></textarea>
+        <button onclick="createChar()">Tạo</button>
+        <div id="charList"></div>
+    </div>
+</div>
 
-<input id="input" placeholder="Nhập tin nhắn...">
-<button onclick="send()">Gửi</button>
+<!-- CHAT APP -->
+<div class="window" id="chatApp">
+    <div class="titlebar">Chat</div>
+    <div class="content">
+        <select id="charSelect"></select>
+        <div id="affinity"></div>
 
+        <div class="chat-box" id="chatBox"></div>
+
+        <input id="msg" placeholder="Nhập tin nhắn...">
+        <button onclick="sendMsg()">Gửi</button>
+    </div>
 </div>
 
 <script>
+let data = JSON.parse(localStorage.getItem("neo_data") || "{}");
+if(!data.chars) data.chars = {};
+if(!data.stars) data.stars = 0;
 
-/* ======================
-   CHARACTER SYSTEM
-====================== */
+function save(){
+    localStorage.setItem("neo_data", JSON.stringify(data));
+}
 
-let chars = {
-    Luna: createChar("dịu dàng"),
-    Noir: createChar("lạnh lùng"),
-    Mira: createChar("ghen nhẹ")
-};
+function openApp(id){
+    document.getElementById(id).style.display="flex";
+    if(id==="chatApp") loadChars();
+    if(id==="charApp") renderChars();
+}
 
-let current = "Luna";
+function createChar(){
+    let name = cName.value;
+    let desc = cDesc.value;
+    if(!name) return;
 
-function createChar(baseMood) {
-    return {
-        mood: baseMood,
-        baseMood: baseMood,
-        affection: 50,
-        memory: []
+    data.chars[name] = {
+        name,
+        desc,
+        affinity:0,
+        chat:[]
     };
+    save();
+    renderChars();
+    alert("Đã tạo nhân vật!");
 }
 
-/* ======================
-   SAVE / LOAD
-====================== */
-
-function save() {
-    localStorage.setItem("lumi_data", JSON.stringify(chars));
+function renderChars(){
+    let list = Object.values(data.chars);
+    charList.innerHTML = list.map(c=>`
+        <div>👤 ${c.name} (❤️ ${c.affinity})</div>
+    `).join("");
 }
 
-function load() {
-    let data = JSON.parse(localStorage.getItem("lumi_data") || "{}");
-    chars = { ...chars, ...data };
+function loadChars(){
+    charSelect.innerHTML = Object.keys(data.chars)
+    .map(c=>`<option>${c}</option>`).join("");
+
+    updateAffinity();
 }
 
-/* ======================
-   MOOD ENGINE
-====================== */
-
-function updateMood(c, text) {
-
-    if (text.includes("yêu")) {
-        c.mood = "làm nũng";
-        c.affection += 10;
-    }
-
-    if (text.includes("ghen")) {
-        c.mood = "ghen";
-        c.affection -= 5;
-    }
-
-    if (text.includes("say") || text.includes("rượu")) {
-        c.mood = "say";
-    }
-
-    if (text.includes("xin lỗi")) {
-        c.mood = "dịu lại";
-        c.affection += 5;
-    }
-
-    if (text.includes("bỏ")) {
-        c.mood = "lạnh";
-        c.affection -= 10;
-    }
-
-    c.affection = Math.max(0, Math.min(100, c.affection));
+function updateAffinity(){
+    let c = data.chars[charSelect.value];
+    if(!c) return;
+    affinity.innerHTML = "Thiện cảm: " + "⭐".repeat(Math.max(0,c.affinity));
+    renderChat();
 }
 
-/* ======================
-   BOT RESPONSE
-====================== */
+charSelect?.addEventListener("change", updateAffinity);
 
-function reply(c, text) {
+function sendMsg(){
+    let c = data.chars[charSelect.value];
+    if(!c) return;
 
-    updateMood(c, text);
+    let text = msg.value;
+    if(!text) return;
 
-    let mem = c.memory.slice(-5).join(" ");
+    c.chat.push("You: " + text);
 
-    if (c.affection > 80) {
-        return "Tôi… thích bạn nhiều hơn tôi nghĩ.";
+    // fake AI reply
+    let reply = aiReply(text, c);
+    c.chat.push(c.name + ": " + reply);
+
+    if(text.includes("cute") || text.includes("yêu")){
+        c.affinity++;
     }
-
-    if (c.affection < 30) {
-        return "Đừng nói chuyện với tôi nữa.";
-    }
-
-    if (c.mood === "ghen") {
-        return "Bạn đang nói chuyện với ai vậy?";
-    }
-
-    if (c.mood === "say") {
-        return "Đầu tôi hơi quay… đừng đi xa.";
-    }
-
-    if (c.mood === "làm nũng") {
-        return "Bạn làm tôi xao động đó…";
-    }
-
-    if (mem.includes("yêu")) {
-        return "Tôi vẫn nhớ câu đó…";
-    }
-
-    return "Tôi đang nghe bạn.";
-}
-
-/* ======================
-   CHAT SYSTEM
-====================== */
-
-let chat = document.getElementById("chat");
-
-function render() {
-    chat.innerHTML = "";
-
-    chars[current].memory.forEach(m => {
-        let div = document.createElement("div");
-        div.className = "msg " + m.role;
-        div.innerText = (m.role === "user" ? "Bạn: " : current + ": ") + m.text;
-        chat.appendChild(div);
-    });
-
-    chat.scrollTop = chat.scrollHeight;
-
-    document.getElementById("status").innerText =
-        `Mood: ${chars[current].mood} | Affection: ${chars[current].affection}`;
-}
-
-/* ======================
-   SEND
-====================== */
-
-function send() {
-    let input = document.getElementById("input");
-    let text = input.value.trim();
-    if (!text) return;
-
-    let c = chars[current];
-
-    c.memory.push({ role: "user", text });
-
-    let bot = reply(c, text);
-
-    c.memory.push({ role: "bot", text: bot });
 
     save();
-
-    input.value = "";
-    render();
+    msg.value="";
+    updateAffinity();
 }
 
-/* ======================
-   SWITCH CHAR
-====================== */
-
-function switchChar() {
-    current = document.getElementById("char").value;
-    render();
+function aiReply(t, c){
+    if(c.affinity > 3){
+        return "Mình thích bạn hơn rồi đó...";
+    }
+    if(t.includes("hello")) return "Xin chào!";
+    return "Hmm... mình đang nghe đây.";
 }
 
-/* ======================
-   INIT
-====================== */
+function renderChat(){
+    let c = data.chars[charSelect.value];
+    if(!c) return;
 
-load();
-render();
+    chatBox.innerHTML = c.chat.map(m=>{
+        return `<div>${m.includes("You:")?'<span class="msg-user">'+m+'</span>':'<span class="msg-ai">'+m+'</span>'}</div>`;
+    }).join("");
+}
 
+function dailyReward(){
+    let last = localStorage.getItem("last_day");
+    let today = new Date().toDateString();
+
+    if(last === today){
+        alert("Hôm nay bạn đã nhận rồi!");
+        return;
+    }
+
+    data.stars += 3;
+    localStorage.setItem("last_day", today);
+    save();
+
+    alert("Nhận 3 sao!");
+}
 </script>
 
 </body>
